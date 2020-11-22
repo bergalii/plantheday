@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day Planner</title>
+    <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/a4032e26c3.js" crossorigin="anonymous"></script>
+
+    <style>
+        a {
+            color: black;
+        }
+        
+        a:hover {
+            color: whitesmoke;
+        }
+        
+        span {
+            font-size: 30px;
+            margin-left: 250px;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            color: whitesmoke;
+        }
+        
+        .row {
+            background-color: blanchedalmond;
+            background-image: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+        }
+        
+        .searchbox {
+            background-color: whitesmoke;
+            color: black;
+        }
+        
+        .list-group-item {
+            font-size: 1.4rem;
+        }
+        
+        .searchbox {
+            height: 38px;
+            pointer-events: none;
+            background-color: whitesmoke;
+        }
+        
+        .edit:hover {
+            cursor: pointer;
+        }
+        
+        .list-group-item {
+            color: #343a40;
+            background-color: whitesmoke;
+        }
+        
+        .list-group-item:nth-child(odd) {
+            color: whitesmoke;
+            background-color: #343a40;
+        }
+        
+        h1 {
+            color: #343a40;
+        }
+        
+        .line-through {
+            text-decoration: line-through;
+        }
+        
+        .btn-danger-remove {
+            display: none;
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                width: 100% !important;
+            }
+            span {
+                font-size: 16px;
+                margin-left: 30px;
+            }
+            .search {
+                width: 100% !important;
+                padding-left: 40px;
+            }
+            h1 {
+                font-size: 28px !important;
+            }
+            .fa-edit {
+                font-size: 20px;
+            }
+            .btn-danger-remove {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container w-50 ml-auto mr-auto p-4 ">
+        <div class="row rounded pb-3">
+            <div class="col mt-3">
+                <div class="nameholder d-flex justify-content-between">
+                    <a class="edit rounded  ml-1 mt-1 p-1"><i class="fas fa-edit fa-2x"></i></a></i>
+                </div>
+                <div id="main" class="card first">
+                    <div class="card-body">
+                        <h5 class="card-header bg-dark">Add New Task</h5>
+                        <form action="" id="task-form" class="mt-2">
+                            <div class="input-field">
+                                <input type="text" name="task" id="task" class="form-control" placeholder="Task Name">
+                            </div>
+                        </form>
+                        <button id="taskBtn" class="btn btn-primary mt-2 mr-auto">Add Task</button>
+                    </div>
+                </div>
+                <div class="card second mt-3 pb-2">
+                    <div class="card-body">
+                        <div class=" rounded d-flex justify-content-between bg-primary">
+                            <h5 class="card-header  w-100" id="task-title">Task List</h5>
+                            <div class="input-field search w-50 p-0 d-flex flex-row m-auto pr-1">
+                                <input type="text" name="filter" id="filter" class="form-control" placeholder="Search For Tasks">
+                                <button class="rounded searchbox btn btn-primary h-30"><i class="d-inline fa fa-search"></i></button>
+                            </div>
+                        </div>
+                        <ul class="list-group"></ul>
+                        <a href="#" class="clear-tasks btn btn-primary mt-2 p-2">Clear Tasks</a>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+    <script>
+        //Main Elements
+        const bodyHTML = document.body.innerHTML;
+        var name = JSON.parse(localStorage.getItem('name'));
+        const form = document.querySelector('#task-form');
+        const taskBtn = document.querySelector('#taskBtn');
+        const editBtn = document.querySelector('.edit');
+        const taskList = document.querySelector('.list-group');
+        const clearBtn = document.querySelector('.clear-tasks');
+        const filter = document.querySelector('#filter');
+        const taskInput = document.querySelector('#task');
+
+        //Date
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = today.getFullYear();
+
+        today = mm + '/' + dd + '/' + yyyy;
+        start();
+
+
+        //Event Listeners
+        function loadEventListeners() {
+            document.addEventListener('DOMContentLoaded', getTasks);
+            form.addEventListener('submit', addTask);
+            taskList.addEventListener('click', removeTask);
+            taskBtn.addEventListener('click', addTaskbyBtn)
+            clearBtn.addEventListener('click', clearTasks);
+            filter.addEventListener('keyup', filterTasks);
+            editBtn.addEventListener('click', editName);
+
+        }
+
+        //Initial Function
+        function start() {
+            let boxwidth = window.getComputedStyle(document.getElementById('filter')).height
+            document.querySelector('.searchbox').style.height = boxwidth;
+            if (name == 'null') {
+                enterName();
+            } else {
+                loadEventListeners();
+                let nameTag = document.createElement('h1');
+                let date = document.createElement('span');
+                date.textContent = today;
+                nameTag.classList = 'nametag';
+                nameTag.textContent = `Welcome ${name}`;
+                nameTag.appendChild(date);
+                document.querySelector('.nameholder').insertBefore(nameTag, document.querySelector('.edit'));
+            }
+        }
+
+        //Editing Name
+        function editName() {
+            document.querySelector('.nametag').remove();
+            let nameTag = document.createElement('div');
+            nameTag.classList.add("edit-state");
+            nameTag.innerHTML = `       <form action="" id="edit-state" class="d-flex">
+                                            <input type="text" class="name form-control  mb-0 " placeholder="Please Enter Your Name">
+                                            <button class="rounded btn btn-primary mb-2 edit-confirm">OK</button>
+                                        </form>`
+
+            document.querySelector('.nameholder').insertBefore(nameTag, document.querySelector('.edit'));
+            document.querySelector('.edit-confirm').addEventListener('click', () => {
+                name = document.querySelector('.name').value;
+                localStorage.setItem('name', JSON.stringify(name));
+                document.querySelector('.edit-state').remove();
+                start();
+
+            });
+
+            document.querySelector('.edit-confirm').addEventListener('submit', () => {
+                name = document.querySelector('.name').value;
+                localStorage.setItem('name', JSON.stringify(name));
+                document.querySelector('.edit-state').remove();
+                start();
+
+            });
+
+        }
+
+
+        //First Name Input
+        function enterName() {
+            document.body.innerHTML = ''
+            document.body.innerHTML = `<div class="container card mt-5 pb-2 w-50 bg-dark">
+                                            <h2 style="color: white">Welcome, please enter your name below.</h2>
+                                                <form action="" id="name" class="mt-2">
+                                                    <div class="input-field d-flex">
+                                                        <input type="text" class="name form-control m-auto mt-5 " placeholder="Please Enter Your Name">
+                                                        <button class="rounded btn btn-success">Enter</button>
+                                                    </div>
+                                                </form>
+                                        </div>`
+            const nameBtn = document.querySelector('.btn-success');
+            const submitBtn = document.getElementById('name');
+            console.log(submitBtn)
+            nameBtn.addEventListener("click", () => {
+                name = document.querySelector('.name').value;
+                localStorage.setItem('name', JSON.stringify(name));
+                window.location.reload();
+            });
+
+            submitBtn.addEventListener("submit", () => {
+                name = document.querySelector('.name').value;
+                localStorage.setItem('name', JSON.stringify(name));
+                window.location.reload();
+            });
+
+        }
+
+
+        //Adding and Removing Task to/from HTML
+        function addTaskbyBtn() {
+            console.log('ok')
+            if (taskInput.value == '') {
+                alert('Add a task');
+            } else {
+                const li = document.createElement('li');
+                li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
+                li.appendChild(document.createTextNode(taskInput.value));
+                const link = document.createElement('button');
+                link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
+                link.innerHTML = '<i class="fa fa-remove"></i>';
+                li.appendChild(link);
+                taskList.appendChild(li);
+                storeTaskInLocalStorage(taskInput.value);
+                taskInput.value = '';
+                li.addEventListener('mouseenter', showDeleteBtn);
+                li.addEventListener('mouseleave', hideDeleteBtn);
+            }
+        }
+
+        function addTask(e) {
+            if (taskInput.value == '') {
+                alert('Add a task');
+            } else {
+                const li = document.createElement('li');
+                li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
+                li.appendChild(document.createTextNode(taskInput.value));
+                const link = document.createElement('button');
+                link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
+                link.innerHTML = '<i class="fa fa-remove"></i>';
+                li.appendChild(link);
+                taskList.appendChild(li);
+                storeTaskInLocalStorage(taskInput.value);
+                taskInput.value = '';
+                li.addEventListener('mouseenter', showDeleteBtn);
+                li.addEventListener('mouseleave', hideDeleteBtn);
+            }
+            e.preventDefault();
+        }
+
+        function removeTask(e) {
+            if (e.target.parentElement.classList.contains('delete-item')) {
+                e.target.parentElement.parentElement.remove();
+                removeTaskFromLocalStorage(e.target.parentElement.parentElement);
+            } else if (e.target.classList.contains('delete-item')) {
+                e.target.parentElement.remove();
+                removeTaskFromLocalStorage(e.target.parentElement);
+            } else {
+                e.target.classList.toggle("line-through");
+                let g = document.querySelector('.list-group');
+                let classes = [];
+                g.childNodes.forEach(el => {
+                    if (el.classList.contains('line-through')) {
+                        classes.push('1');
+                    } else {
+                        classes.push('0');
+                    }
+                });
+                localStorage.setItem('classes', JSON.stringify(classes));
+            };
+
+        }
+
+        function showDeleteBtn(e) {
+            e.target.childNodes[1].classList.remove('btn-danger-remove')
+        }
+
+        function hideDeleteBtn(e) {
+            e.target.childNodes[1].classList.add('btn-danger-remove')
+        }
+
+        function clearTasks() {
+            taskList.innerHTML = '';
+            tasks = [];
+            classes = [];
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('classes', JSON.stringify(classes));
+        }
+
+        //Task Filtering
+        function filterTasks(e) {
+            const txt = e.target.value.toLowerCase();
+            document.querySelectorAll('.list-group-item').forEach(function(task) {
+                const item = task.firstChild.textContent;
+                console.log(item.toLowerCase().indexOf(txt))
+                if (item.toLowerCase().indexOf(txt) != -1) {
+                    task.style.display = 'block';
+                } else {
+                    task.setAttribute('style', 'display:none !important');
+                }
+            });
+        }
+
+        //Adding and Removing Tasks to/from Local Storage
+        function storeTaskInLocalStorage(task) {
+            let tasks;
+            let classes;
+            if (localStorage.getItem('tasks') == null || localStorage.getItem('classes') == null) {
+                tasks = [];
+                classes = [];
+            } else {
+                tasks = JSON.parse(localStorage.getItem('tasks'));
+                classes = JSON.parse(localStorage.getItem('classes'));
+            }
+            tasks.push(task);
+            classes.push('0');
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('classes', JSON.stringify(classes));
+        }
+
+        function getTasks() {
+            let tasks;
+            if (localStorage.getItem('tasks') == null) {
+                tasks = [];
+                classes = [];
+            } else {
+                tasks = JSON.parse(localStorage.getItem('tasks'));
+                classes = JSON.parse(localStorage.getItem('classes'));
+            }
+            let i = 0;
+            tasks.forEach(function(task) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
+                li.appendChild(document.createTextNode(task));
+                const link = document.createElement('button');
+                link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
+                link.innerHTML = '<i class="fa fa-remove"></i>';
+                li.appendChild(link);
+                taskList.appendChild(li);
+                li.addEventListener('mouseenter', showDeleteBtn);
+                li.addEventListener('mouseleave', hideDeleteBtn);
+                if (classes[i] == '1') {
+                    li.classList.toggle('line-through');
+                }
+                i += 1;
+            });
+        }
+
+        function removeTaskFromLocalStorage(taskItem) {
+            let tasks;
+            let classes;
+            if (localStorage.getItem('tasks') == null || localStorage.getItem('classes') == null) {
+                tasks = [];
+                classes = [];
+            } else {
+                tasks = JSON.parse(localStorage.getItem('tasks'));
+                classes = JSON.parse(localStorage.getItem('classes'));
+            }
+            tasks.forEach(function(task, index) {
+                if (taskItem.textContent == task) {
+                    tasks.splice(index, 1);
+                    classes.splice(index, 1);
+                }
+            });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('classes', JSON.stringify(classes));
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+</body>
+
+</html>
