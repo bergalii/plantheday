@@ -77,6 +77,14 @@
             display: none;
         }
         
+        #task {
+            flex: 3;
+        }
+        
+        #time {
+            flex: 1;
+        }
+        
         @media (max-width: 1200px) {
             .container {
                 width: 100% !important;
@@ -113,8 +121,9 @@
                     <div class="card-body">
                         <h5 class="card-header bg-dark">Add New Task</h5>
                         <form action="" id="task-form" class="mt-2">
-                            <div class="input-field">
+                            <div class="input-field d-flex">
                                 <input type="text" name="task" id="task" class="form-control" placeholder="Task Name">
+                                <input type="number" name="task" id="time" class="form-control" placeholder="Time (min.)">
                             </div>
                         </form>
                         <button id="taskBtn" class="btn btn-primary mt-2 mr-auto">Add Task</button>
@@ -123,7 +132,7 @@
                 <div class="card second mt-3 pb-2">
                     <div class="card-body">
                         <div class=" rounded d-flex justify-content-between bg-primary">
-                            <h5 class="card-header  w-100" id="task-title">Task List</h5>
+                            <h5 class="card-header  w-100" id="task-title">Task List <span id='total'>[Total: 0 minutes]</span></h5>
                             <div class="input-field search w-50 p-0 d-flex flex-row m-auto pr-1">
                                 <input type="text" name="filter" id="filter" class="form-control" placeholder="Search For Tasks">
                                 <button class="rounded searchbox btn btn-primary h-30"><i class="d-inline fa fa-search"></i></button>
@@ -140,6 +149,7 @@
     </div>
     <script>
         //Main Elements
+        var total = 0;
         const bodyHTML = document.body.innerHTML;
         var name = JSON.parse(localStorage.getItem('name'));
         const form = document.querySelector('#task-form');
@@ -149,6 +159,7 @@
         const clearBtn = document.querySelector('.clear-tasks');
         const filter = document.querySelector('#filter');
         const taskInput = document.querySelector('#task');
+        const taskTime = document.getElementById('time');
 
         //Date
         var today = new Date();
@@ -252,22 +263,25 @@
 
         //Adding and Removing Task to/from HTML
         function addTaskbyBtn() {
-            console.log('ok')
-            if (taskInput.value == '') {
-                alert('Add a task');
+            if (taskInput.value == '' || taskTime.value == '') {
+                alert('Add a task and time!');
             } else {
                 const li = document.createElement('li');
                 li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
-                li.appendChild(document.createTextNode(taskInput.value));
+                li.appendChild(document.createTextNode(`${taskInput.value} (~${taskTime.value} minutes)`));
                 const link = document.createElement('button');
                 link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
                 link.innerHTML = '<i class="fa fa-remove"></i>';
                 li.appendChild(link);
                 taskList.appendChild(li);
-                storeTaskInLocalStorage(taskInput.value);
+                total += parseInt(taskTime.value);
+                document.getElementById('total').textContent = `[Total:${total} minutes]`;
+                storeTaskInLocalStorage(taskInput.value, taskTime.value);
                 taskInput.value = '';
+                taskTime.value = '';
                 li.addEventListener('mouseenter', showDeleteBtn);
                 li.addEventListener('mouseleave', hideDeleteBtn);
+
             }
         }
 
@@ -277,16 +291,20 @@
             } else {
                 const li = document.createElement('li');
                 li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
-                li.appendChild(document.createTextNode(taskInput.value));
+                li.appendChild(document.createTextNode(`${taskInput.value} (~${taskTime.value} minutes)`));
                 const link = document.createElement('button');
                 link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
                 link.innerHTML = '<i class="fa fa-remove"></i>';
                 li.appendChild(link);
                 taskList.appendChild(li);
-                storeTaskInLocalStorage(taskInput.value);
+                total += parseInt(taskTime.value);
+                document.getElementById('total').textContent = `[Total:${total} minutes]`;
+                storeTaskInLocalStorage(taskInput.value, taskTime.value);
                 taskInput.value = '';
+                taskTime.value = '';
                 li.addEventListener('mouseenter', showDeleteBtn);
                 li.addEventListener('mouseleave', hideDeleteBtn);
+
             }
             e.preventDefault();
         }
@@ -326,8 +344,12 @@
             taskList.innerHTML = '';
             tasks = [];
             classes = [];
+            times = [];
+            total = 0;
             localStorage.setItem('tasks', JSON.stringify(tasks));
             localStorage.setItem('classes', JSON.stringify(classes));
+            localStorage.setItem('times', JSON.stringify(times));
+            document.getElementById('total').textContent = `[Total:0 minutes]`;
         }
 
         //Task Filtering
@@ -335,7 +357,6 @@
             const txt = e.target.value.toLowerCase();
             document.querySelectorAll('.list-group-item').forEach(function(task) {
                 const item = task.firstChild.textContent;
-                console.log(item.toLowerCase().indexOf(txt))
                 if (item.toLowerCase().indexOf(txt) != -1) {
                     task.style.display = 'block';
                 } else {
@@ -345,36 +366,47 @@
         }
 
         //Adding and Removing Tasks to/from Local Storage
-        function storeTaskInLocalStorage(task) {
+        function storeTaskInLocalStorage(task, time) {
             let tasks;
             let classes;
-            if (localStorage.getItem('tasks') == null || localStorage.getItem('classes') == null) {
+            let times;
+            if (localStorage.getItem('tasks') == null || localStorage.getItem('classes') == null || localStorage.getItem('times') == null) {
                 tasks = [];
                 classes = [];
+                times = [];
             } else {
                 tasks = JSON.parse(localStorage.getItem('tasks'));
                 classes = JSON.parse(localStorage.getItem('classes'));
+                times = JSON.parse(localStorage.getItem('times'));
             }
             tasks.push(task);
+            times.push(time);
             classes.push('0');
             localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('times', JSON.stringify(times));
             localStorage.setItem('classes', JSON.stringify(classes));
+
         }
 
         function getTasks() {
             let tasks;
-            if (localStorage.getItem('tasks') == null) {
+            let times;
+            let classes;
+            if (localStorage.getItem('tasks') == null || localStorage.getItem('times') == null || localStorage.getItem('classes') == null) {
                 tasks = [];
                 classes = [];
+                times = [];
             } else {
                 tasks = JSON.parse(localStorage.getItem('tasks'));
+                times = JSON.parse(localStorage.getItem('times'));
                 classes = JSON.parse(localStorage.getItem('classes'));
             }
             let i = 0;
+            total = 0;
             tasks.forEach(function(task) {
                 const li = document.createElement('li');
                 li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
-                li.appendChild(document.createTextNode(task));
+                li.appendChild(document.createTextNode(`${task} (~${times[i]} minutes)`));
                 const link = document.createElement('button');
                 link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
                 link.innerHTML = '<i class="fa fa-remove"></i>';
@@ -385,28 +417,37 @@
                 if (classes[i] == '1') {
                     li.classList.toggle('line-through');
                 }
+                total += parseInt(times[i]);
                 i += 1;
             });
+            document.getElementById('total').textContent = `[Total:${total} minutes]`;
         }
 
         function removeTaskFromLocalStorage(taskItem) {
             let tasks;
             let classes;
-            if (localStorage.getItem('tasks') == null || localStorage.getItem('classes') == null) {
+            let times;
+            if (localStorage.getItem('tasks') == null || localStorage.getItem('classes') == null || localStorage.getItem('times') == null) {
                 tasks = [];
                 classes = [];
+                times = [];
             } else {
                 tasks = JSON.parse(localStorage.getItem('tasks'));
+                times = JSON.parse(localStorage.getItem('times'));
                 classes = JSON.parse(localStorage.getItem('classes'));
             }
             tasks.forEach(function(task, index) {
-                if (taskItem.textContent == task) {
+                if (taskItem.textContent.split(' (')[0] == task) {
                     tasks.splice(index, 1);
                     classes.splice(index, 1);
+                    total -= parseInt(times[index]);
+                    document.getElementById('total').textContent = `[Total:${total} minutes]`;
+                    times.splice(index, 1);
                 }
             });
             localStorage.setItem('tasks', JSON.stringify(tasks));
             localStorage.setItem('classes', JSON.stringify(classes));
+            localStorage.setItem('times', JSON.stringify(times));
         }
     </script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
