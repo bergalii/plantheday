@@ -277,14 +277,17 @@
             } else {
                 const li = document.createElement('li');
                 li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
-                li.appendChild(document.createTextNode(`${taskInput.value} (~${taskTime.value} minutes)`));
+                li.appendChild(document.createTextNode(`${taskInput.value} [~${taskTime.value} minutes]`));
                 const link = document.createElement('button');
                 link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
                 link.innerHTML = '<i class="fa fa-remove"></i>';
                 li.appendChild(link);
                 taskList.appendChild(li);
                 total += parseInt(taskTime.value);
-                document.getElementById('total').textContent = `[Total:${total} minutes]`;
+                if (total > 60)
+                    document.getElementById('total').textContent = `[Total:${Math.floor(total / 60)} hrs. ${total % 60} mins.]`;
+                else
+                    document.getElementById('total').textContent = `[Total:${total} minutes]`;
                 storeTaskInLocalStorage(taskInput.value, taskTime.value);
                 taskInput.value = '';
                 taskTime.value = '';
@@ -300,14 +303,18 @@
             } else {
                 const li = document.createElement('li');
                 li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
-                li.appendChild(document.createTextNode(`${taskInput.value} (~${taskTime.value} minutes)`));
+                li.appendChild(document.createTextNode(`${taskInput.value} [~${taskTime.value} minutes]`));
                 const link = document.createElement('button');
                 link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
                 link.innerHTML = '<i class="fa fa-remove"></i>';
                 li.appendChild(link);
                 taskList.appendChild(li);
                 total += parseInt(taskTime.value);
-                document.getElementById('total').textContent = `[Total:${total} minutes]`;
+                if (total > 60)
+                    document.getElementById('total').textContent = `[Total:${Math.floor(total / 60)} hrs. ${total % 60} mins.]`;
+                else
+                    document.getElementById('total').textContent = `[Total:${total} minutes]`;
+                s
                 storeTaskInLocalStorage(taskInput.value, taskTime.value);
                 taskInput.value = '';
                 taskTime.value = '';
@@ -415,7 +422,7 @@
             tasks.forEach(function(task) {
                 const li = document.createElement('li');
                 li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
-                li.appendChild(document.createTextNode(`${task} (~${times[i]} minutes)`));
+                li.appendChild(document.createTextNode(`${task} [~${times[i]} minutes]`));
                 const link = document.createElement('button');
                 link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
                 link.innerHTML = '<i class="fa fa-remove"></i>';
@@ -429,7 +436,12 @@
                 total += parseInt(times[i]);
                 i += 1;
             });
-            document.getElementById('total').textContent = `[Total:${total} minutes]`;
+
+            if (total > 60)
+                document.getElementById('total').textContent = `[Total:${Math.floor(total / 60)} hrs. ${total % 60} mins.]`;
+            else
+                document.getElementById('total').textContent = `[Total:${total} minutes]`;
+
         }
 
         function removeTaskFromLocalStorage(taskItem) {
@@ -446,11 +458,14 @@
                 classes = JSON.parse(localStorage.getItem('classes'));
             }
             tasks.forEach(function(task, index) {
-                if (taskItem.textContent.split(' (')[0] == task) {
+                if (taskItem.textContent.split(' [')[0] == task) {
                     tasks.splice(index, 1);
                     classes.splice(index, 1);
                     total -= parseInt(times[index]);
-                    document.getElementById('total').textContent = `[Total:${total} minutes]`;
+                    if (total > 60)
+                        document.getElementById('total').textContent = `[Total:${Math.floor(total / 60)} hrs. ${total % 60} mins.]`;
+                    else
+                        document.getElementById('total').textContent = `[Total:${total} minutes]`;
                     times.splice(index, 1);
                 }
             });
