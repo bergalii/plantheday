@@ -179,13 +179,12 @@
         today = mm + '/' + dd + '/' + yyyy;
         start();
 
-
         //Event Listeners
         function loadEventListeners() {
             document.addEventListener('DOMContentLoaded', getTasks);
-            form.addEventListener('submit', addTask);
             taskList.addEventListener('click', removeTask);
             taskBtn.addEventListener('click', addTaskbyBtn)
+            document.getElementById('time').addEventListener("keydown", addTask)
             clearBtn.addEventListener('click', clearTasks);
             filter.addEventListener('keyup', filterTasks);
             editBtn.addEventListener('click', editName);
@@ -298,31 +297,31 @@
         }
 
         function addTask(e) {
-            if (taskInput.value == '') {
-                alert('Add a task');
-            } else {
-                const li = document.createElement('li');
-                li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
-                li.appendChild(document.createTextNode(`${taskInput.value} [~${taskTime.value} minutes]`));
-                const link = document.createElement('button');
-                link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
-                link.innerHTML = '<i class="fa fa-remove"></i>';
-                li.appendChild(link);
-                taskList.appendChild(li);
-                total += parseInt(taskTime.value);
-                if (total > 60)
-                    document.getElementById('total').textContent = `[Total:${Math.floor(total / 60)} hrs. ${total % 60} mins.]`;
-                else
-                    document.getElementById('total').textContent = `[Total:${total} minutes]`;
-                s
-                storeTaskInLocalStorage(taskInput.value, taskTime.value);
-                taskInput.value = '';
-                taskTime.value = '';
-                li.addEventListener('mouseenter', showDeleteBtn);
-                li.addEventListener('mouseleave', hideDeleteBtn);
+            if (e.key == 'Enter') {
+                if (taskInput.value == '' || taskTime.value == '') {
+                    alert('Add a task and a time!');
+                } else {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
+                    li.appendChild(document.createTextNode(`${taskInput.value} [~${taskTime.value} minutes]`));
+                    const link = document.createElement('button');
+                    link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
+                    link.innerHTML = '<i class="fa fa-remove"></i>';
+                    li.appendChild(link);
+                    taskList.appendChild(li);
+                    total += parseInt(taskTime.value);
+                    if (total > 60)
+                        document.getElementById('total').textContent = `[Total:${Math.floor(total / 60)} hrs. ${total % 60} mins.]`;
+                    else
+                        document.getElementById('total').textContent = `[Total:${total} minutes]`;
+                    storeTaskInLocalStorage(taskInput.value, taskTime.value);
+                    taskInput.value = '';
+                    taskTime.value = '';
+                    li.addEventListener('mouseenter', showDeleteBtn);
+                    li.addEventListener('mouseleave', hideDeleteBtn);
 
+                }
             }
-            e.preventDefault();
         }
 
         function removeTask(e) {
