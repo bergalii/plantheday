@@ -276,7 +276,10 @@
             } else {
                 const li = document.createElement('li');
                 li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
-                li.appendChild(document.createTextNode(`${taskInput.value} [~${taskTime.value} minutes]`));
+                if (taskTime.value > 60)
+                    li.appendChild(document.createTextNode(`${taskInput.value} [~${Math.floor(taskTime.value / 60)} hrs. ${taskTime.value % 60} mins.]`));
+                else
+                    li.appendChild(document.createTextNode(`${taskInput.value} [~${taskTime.value} minutes]`));
                 const link = document.createElement('button');
                 link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
                 link.innerHTML = '<i class="fa fa-remove"></i>';
@@ -303,7 +306,10 @@
                 } else {
                     const li = document.createElement('li');
                     li.className = 'list-group-item mt-1 p-1 d-flex justify-content-between';
-                    li.appendChild(document.createTextNode(`${taskInput.value} [~${taskTime.value} minutes]`));
+                    if (taskTime.value > 60)
+                        li.appendChild(document.createTextNode(`${taskInput.value} [~${Math.floor(taskTime.value / 60)} hrs. ${taskTime.value % 60} mins.]`));
+                    else
+                        li.appendChild(document.createTextNode(`${taskInput.value} [~${taskTime.value} minutes]`));
                     const link = document.createElement('button');
                     link.className = 'delete-item secondary-content btn btn-danger btn-danger-remove';
                     link.innerHTML = '<i class="fa fa-remove"></i>';
@@ -319,6 +325,7 @@
                     taskTime.value = '';
                     li.addEventListener('mouseenter', showDeleteBtn);
                     li.addEventListener('mouseleave', hideDeleteBtn);
+                    taskInput.focus();
 
                 }
             }
